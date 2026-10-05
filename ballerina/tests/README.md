@@ -38,4 +38,4 @@ export WEAVIATE_API_KEY=<api-key>
 ./gradlew clean test -Pgroups=live_tests
 ```
 
-The live tests create and delete a collection named `Article` and create a role named `reader`, so run them against a disposable instance.
+The live tests create the collections `Article`, `Scratch` and `TenantArticle`, the alias `ArticlesProd` and the role `reader`. `Scratch` is deleted by its own test. The others are deleted after the suite, but a run that is interrupted can leave them behind, so run the tests against a disposable instance. Near-text search needs a vectorizer module, so that test runs against the mock only.

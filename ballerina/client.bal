@@ -20,16 +20,7 @@
 import ballerina/data.jsondata;
 import ballerina/http;
 
-# # Introduction
-#  Weaviate is an open source, AI-native vector database that helps developers create intuitive and reliable AI-powered applications. 
-#  ### Base Path 
-# The base path for the Weaviate server is structured as `[YOUR-WEAVIATE-HOST]:[PORT]/v1`. As an example, if you wish to access the `schema` endpoint on a local instance, you would navigate to `http://localhost:8080/v1/schema`. Ensure you replace `[YOUR-WEAVIATE-HOST]` and `[PORT]` with your actual server host and port number respectively. 
-#  ### Questions? 
-# If you have any comments or questions, please feel free to reach out to us at the community forum [https://forum.weaviate.io/](https://forum.weaviate.io/). 
-# ### Issues? 
-# If you find a bug or want to file a feature request, please open an issue on our GitHub repository for [Weaviate](https://github.com/weaviate/weaviate). 
-# ### Need more documentation? 
-# For a quickstart, code examples, concepts and more, please visit our [documentation page](https://docs.weaviate.io/weaviate).
+# Weaviate is an open source, AI-native vector database. This client connects to the Weaviate REST API v1 to manage collections, objects, searches, tenants, backups, replication, users and roles.
 public isolated client class Client {
     final http:Client clientEp;
     # Gets invoked to initialize the `connector`.
@@ -1532,7 +1523,7 @@ public isolated client class Client {
     # + headers - Headers to be sent with the request 
     # + payload - JSON-RPC 2.0 request message 
     # + return - JSON-RPC response or SSE stream 
-    remote isolated function sendMcpRequest(record {} payload, map<string|string[]> headers = {}) returns error? {
+    remote isolated function sendMcpRequest(record {} payload, map<string|string[]> headers = {}) returns record {}|error {
         string resourcePath = string `/mcp`;
         http:Request request = new;
         json jsonBody = jsondata:toJson(payload);

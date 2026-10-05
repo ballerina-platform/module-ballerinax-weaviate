@@ -7,7 +7,7 @@ import ballerinax/weaviate;
 configurable string weaviateUrl = ?;
 configurable string adminApiKey = ?;
 configurable string roleName = "article-reader";
-configurable string userId = ?;
+configurable string userId = "article-reader-user";
 configurable string collectionPattern = "Article*";
 configurable boolean createUserAndAssignRole = false;
 
@@ -33,9 +33,10 @@ public function main() returns error? {
         return;
     }
 
-    // Step 3: Create the database user. The API key is only returned once.
+    // Step 3: Create the database user. The API key is returned only once: hand `apiKey.apikey`
+    // to a secret store here instead of printing it.
     weaviate:UserApiKey apiKey = check weaviateClient->createUser(userId, {});
-    io:println("Created user ", userId, ". Store the API key securely: ", apiKey.apikey);
+    io:println("Created user ", userId, ". Its API key was issued and must be stored securely now");
 
     // Step 4: Assign the role to the user.
     check weaviateClient->assignRoleToUser(userId, {roles: [roleName], userType: "db"});

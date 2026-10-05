@@ -16,6 +16,7 @@
 
 
 import ballerina/http;
+import ballerina/log;
 import ballerina/os;
 import ballerina/test;
 
@@ -26,6 +27,7 @@ final string apiKey = isLiveServer ? os:getEnv("WEAVIATE_API_KEY") : "test_api_k
 final Client weaviate = check new ({auth: {token: apiKey}, httpVersion: isLiveServer ? http:HTTP_2_0 : http:HTTP_1_1}, serviceUrl);
 
 const string OBJECT_ID = "5b6a08ba-1d46-43aa-89cc-8b070790c6f2";
+const string TENANT_COLLECTION = "TenantArticle";
 
 @test:Config {groups: ["live_tests", "mock_tests"]}
 function testListCollections() returns error? {
@@ -39,7 +41,7 @@ function testCreateCollection() returns error? {
     test:assertEquals(response?.'class, "Article");
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testGetCollection() returns error? {
     Collection response = check weaviate->getCollection("Article");
     test:assertEquals(response?.'class, "Article");
@@ -52,64 +54,66 @@ function testDeleteCollection() returns error? {
     test:assertTrue(response is ());
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testAddCollectionProperty() returns error? {
     Property response = check weaviate->addCollectionProperty("Article", {name: "summary", dataType: ["text"]});
     test:assertEquals(response?.name, "summary");
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateObject]}
 function testListObjects() returns error? {
-    ObjectsListResponse response = check weaviate->listObjects();
+    ObjectsListResponse response = check weaviate->listObjects('class = "Article");
     test:assertTrue((response?.objects ?: []).length() > 0);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testCreateObject() returns error? {
-    WeaviateObject response = check weaviate->createObject({'class: "Article", properties: {"title": "Hello Weaviate"}});
-    test:assertTrue(response?.id !is ());
+    WeaviateObject response = check weaviate->createObject({'class: "Article", id: OBJECT_ID, properties: {"title": "Hello Weaviate"}});
+    test:assertEquals(response?.id, OBJECT_ID);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateObject]}
 function testGetCollectionObject() returns error? {
     WeaviateObject response = check weaviate->getCollectionObject("Article", OBJECT_ID);
     test:assertEquals(response?.id, OBJECT_ID);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testDeleteCollectionObject() returns error? {
     WeaviateObject created = check weaviate->createObject({'class: "Article", properties: {"title": "To be deleted"}});
     error? response = weaviate->deleteCollectionObject("Article", created?.id ?: OBJECT_ID);
     test:assertTrue(response is ());
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testGetCollectionObject]}
 function testUpdateCollectionObject() returns error? {
     error? response = weaviate->updateCollectionObject("Article", OBJECT_ID, {'class: "Article", properties: {"title": "Updated"}});
     test:assertTrue(response is ());
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testValidateObject() returns error? {
     error? response = weaviate->validateObject({'class: "Article", properties: {"title": "Hello Weaviate"}});
     test:assertTrue(response is ());
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testCreateObjectsBatch() returns error? {
     ObjectsGetResponse[] response = check weaviate->createObjectsBatch({objects: [{'class: "Article", properties: {"title": "Hello Weaviate"}}]});
     test:assertTrue(response.length() > 0);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testDeleteObjectsBatch() returns error? {
     ObjectsGetResponse[] created = check weaviate->createObjectsBatch({objects: [{'class: "Article", properties: {"title": "To be deleted"}}]});
     test:assertTrue(created.length() > 0);
-    BatchDeleteResponse response = check weaviate->deleteObjectsBatch({'match: {'class: "Article"}});
+    BatchDeleteResponse response = check weaviate->deleteObjectsBatch({
+        'match: {'class: "Article", 'where: {path: ["title"], operator: "Equal", valueText: "To be deleted"}}
+    });
     test:assertTrue(response?.results is BatchDeleteResponseResults);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateObject]}
 function testExecuteGraphql() returns error? {
     GraphQLResponse response = check weaviate->executeGraphql({query: "{ Get { Article { title } } }"});
     test:assertTrue(response?.data !is ());
@@ -127,37 +131,41 @@ function testListNodes() returns error? {
     test:assertTrue((response?.nodes ?: []).length() > 0);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+// Near-text search vectorizes the query, which needs a vectorizer module the live `Article`
+// collection does not have, so this runs against the mock only.
+@test:Config {groups: ["mock_tests"]}
 function testSearchNearText() returns error? {
     SearchResponse response = check weaviate->searchNearText("Article", {query: ["weaviate"]});
     test:assertTrue(response.results.length() > 0);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+// `alpha: 0` makes the search pure keyword, so the query is never vectorized.
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateObject]}
 function testSearchHybrid() returns error? {
-    SearchResponse response = check weaviate->searchHybrid("Article", {query: "weaviate"});
+    SearchResponse response = check weaviate->searchHybrid("Article", {query: "weaviate", alpha: 0});
     test:assertTrue(response.results.length() > 0);
 }
 
 @test:Config {groups: ["live_tests", "mock_tests"]}
-function testListTenants() returns error? {
-    Tenant[] response = check weaviate->listTenants("Article");
-    test:assertTrue(response.length() > 0);
-}
-
-@test:Config {groups: ["live_tests", "mock_tests"]}
 function testCreateTenants() returns error? {
-    Tenant[] response = check weaviate->createTenants("Article", [{name: "tenantC"}]);
+    _ = check weaviate->createCollection({'class: TENANT_COLLECTION, vectorizer: "none", multiTenancyConfig: {enabled: true}});
+    Tenant[] response = check weaviate->createTenants(TENANT_COLLECTION, [{name: "tenantC"}]);
     test:assertEquals(response.length(), 1);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateTenants]}
+function testListTenants() returns error? {
+    Tenant[] response = check weaviate->listTenants(TENANT_COLLECTION);
+    test:assertTrue(response.length() > 0);
+}
+
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateAlias]}
 function testListAliases() returns error? {
     AliasResponse response = check weaviate->listAliases();
     test:assertTrue((response?.aliases ?: []).length() > 0);
 }
 
-@test:Config {groups: ["live_tests", "mock_tests"]}
+@test:Config {groups: ["live_tests", "mock_tests"], dependsOn: [testCreateCollection]}
 function testCreateAlias() returns error? {
     Alias response = check weaviate->createAlias({alias: "ArticlesProd", 'class: "Article"});
     test:assertEquals(response?.alias, "ArticlesProd");
@@ -179,4 +187,22 @@ function testCreateRole() returns error? {
 function testListUsers() returns error? {
     DBUserInfo[] response = check weaviate->listUsers();
     test:assertTrue(response.length() > 0);
+}
+
+// Removes what the live tests create, so the suite can be rerun against the same instance.
+// The mock keeps no state, so there is nothing to clean up there.
+@test:AfterSuite {alwaysRun: true}
+function cleanUp() {
+    if !isLiveServer {
+        return;
+    }
+    error? aliasDeleted = weaviate->deleteAlias("ArticlesProd");
+    error? articleDeleted = weaviate->deleteCollection("Article");
+    error? tenantCollectionDeleted = weaviate->deleteCollection(TENANT_COLLECTION);
+    error? roleDeleted = weaviate->deleteRole("reader");
+    foreach error? result in [aliasDeleted, articleDeleted, tenantCollectionDeleted, roleDeleted] {
+        if result is error {
+            log:printWarn("Live test cleanup failed", result);
+        }
+    }
 }

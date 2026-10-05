@@ -29,6 +29,16 @@ These changes are done in order to improve the overall usability, and as workaro
 - **Updated**: Each now has a short description of the submitted payload.
 - **Reason**: Documentation for the generated `payload` parameter.
 
+5. Add a response schema to the `POST /mcp` success response
+- **Original**: The `200` response of `mcp.post` (`sendMcpRequest`) had only a description and no `schema`.
+- **Updated**: `"schema": {"type": "object", "additionalProperties": true}` on the `200` response.
+- **Reason**: Without a schema the client returned `error?` and discarded the JSON-RPC response body. Callers can now read the JSON-RPC response. The JSON response is the one modelled; to receive JSON rather than an SSE stream, send `Accept: application/json` in the `headers` argument.
+
+6. Simplify the API description
+- **Original**: `info.description` was a multi-section Markdown introduction (`# Introduction`, `### Base Path`, `### Questions?`, `### Issues?`, `### Need more documentation?`) with community forum and GitHub links.
+- **Updated**: A short, two-sentence description of Weaviate and what the client covers.
+- **Reason**: The description becomes the `Client` class doc comment. Markdown headings and support links do not belong in API documentation.
+
 ## OpenAPI cli command
 
 The following command was used to generate the Ballerina client from the OpenAPI specification. The command should be executed from the repository root directory.
