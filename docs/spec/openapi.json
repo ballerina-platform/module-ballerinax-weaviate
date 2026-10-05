@@ -11972,6 +11972,7 @@
     },
     "/mcp": {
       "post": {
+        "summary": "Send an MCP JSON-RPC request",
         "description": "MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. Every request is authenticated on its own; no Mcp-Session-Id is issued or required.",
         "tags": [
           "mcp"
@@ -11979,6 +11980,18 @@
         "operationId": "mcp.post",
         "consumes": [
           "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON-RPC 2.0 request message",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
         ],
         "produces": [
           "application/json",
@@ -12002,6 +12015,7 @@
         }
       },
       "delete": {
+        "summary": "End an MCP session",
         "description": "Accepted so clients that end their session explicitly keep working. The server keeps no session state, so there is nothing to terminate.",
         "tags": [
           "mcp"
