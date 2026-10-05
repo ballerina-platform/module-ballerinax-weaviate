@@ -2,13 +2,22 @@
 
 The `ballerinax/weaviate` connector provides practical examples illustrating usage in various scenarios.
 
-[//]: # (TODO: Add examples)
-1. 
-2. 
+1. **[Collection data management](https://github.com/ballerina-platform/module-ballerinax-weaviate/tree/main/examples/collection_data_management)** - Create a collection, add a property, import a batch of objects, list them and delete the objects that match a filter.
+
+2. **[Access role setup](https://github.com/ballerina-platform/module-ballerinax-weaviate/tree/main/examples/access_role_setup)** - Create a read-only role, create a database user, assign the role to the user and read back the user's roles.
 
 ## Prerequisites
 
-[//]: # (TODO: Add prerequisites)
+1. Get the REST endpoint and an API key of a Weaviate instance as described in the [Setup guide](https://central.ballerina.io/ballerinax/weaviate/latest#setup-guide).
+
+2. For each example, create a `Config.toml` file with the related configuration. Here's an example of how your Config.toml file should look:
+
+```toml
+weaviateUrl = "<Weaviate REST endpoint, e.g. https://<cluster-id>.weaviate.cloud/v1>"
+apiKey = "<Weaviate API key>"
+```
+
+Each example lists the additional values it needs in its own README.
 
 ## Running an example
 
