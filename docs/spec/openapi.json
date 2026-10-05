@@ -81,26 +81,20 @@
           "description": "Activity status of the returned user."
         },
         "createdAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
+          "x-nullable": true,
           "format": "date-time",
           "description": "Date and time in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ."
         },
         "apiKeyFirstLetters": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
+          "x-nullable": true,
           "maxLength": 3,
           "description": "First 3 letters of the associated API key."
         },
         "lastUsedAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
+          "x-nullable": true,
           "format": "date-time",
           "description": "Date and time in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ."
         },
@@ -141,10 +135,8 @@
           "description": "The random identifier embedded in the user's API key, used to resolve the key hash. Exactly 16 characters for an importable record; empty when the export reports a user whose key is not carried."
         },
         "secureHash": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
+          "x-nullable": true,
           "description": "The argon2id PHC hash of the user's API key. Null when the key cannot be migrated (see status)."
         },
         "apiKeyFirstLetters": {
@@ -1489,10 +1481,8 @@
                 "type": "object",
                 "description": "A mapping of target node identifiers to their addition configuration. Each key represents a target node where a new replica will be added. The value may be null, which means an empty replica will be created, or a string specifying the source node from which shard data will be copied. If the source node is also marked for removal in the same shard, this addition is treated as a move operation, and that source node can only appear once as a source node for that shard. If the source node is not being removed, it can be used as the source for multiple additions (copy operations).",
                 "additionalProperties": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                  "type": "string",
+                  "x-nullable": true,
                   "description": "Defines how the new replica should be created. If null, an empty shard is created. If a string, it specifies the source node from which data for this shard should be replicated."
                 }
               }
@@ -2551,19 +2541,15 @@
         },
         "numberOfReplicas": {
           "description": "Number of replicas for the shard.",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
+          "x-nullable": true,
           "format": "int64",
           "x-omitempty": true
         },
         "replicationFactor": {
           "description": "Minimum number of replicas for the shard.",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
+          "x-nullable": true,
           "format": "int64",
           "x-omitempty": true
         }
@@ -4624,7 +4610,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/ReplicationReplicateReplicaRequest"
-            }
+            },
+            "description": "Replica movement details: collection, shard, source and target nodes"
           }
         ],
         "responses": {
@@ -4736,7 +4723,8 @@
             "in": "body",
             "schema": {
               "$ref": "#/definitions/ReplicationReplicateForceDeleteRequest"
-            }
+            },
+            "description": "Filter selecting the replication operations to force delete"
           }
         ],
         "responses": {
@@ -5416,7 +5404,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/UserImportRequest"
-            }
+            },
+            "description": "Database user credentials to import, with their hashes and status"
           }
         ],
         "responses": {
@@ -5553,7 +5542,8 @@
                   "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time"
                 }
               }
-            }
+            },
+            "description": "Optional settings for creating the database user"
           }
         ],
         "responses": {
@@ -5812,7 +5802,8 @@
                   "default": false
                 }
               }
-            }
+            },
+            "description": "Options for deactivating the user, including key revocation"
           }
         ],
         "responses": {
@@ -5913,7 +5904,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/Role"
-            }
+            },
+            "description": "Role name and the permissions granted to the new role"
           }
         ],
         "responses": {
@@ -5994,7 +5986,8 @@
                 "name",
                 "permissions"
               ]
-            }
+            },
+            "description": "Permissions to add to the role"
           }
         ],
         "responses": {
@@ -6071,7 +6064,8 @@
               "required": [
                 "permissions"
               ]
-            }
+            },
+            "description": "Permissions to remove from the role"
           }
         ],
         "responses": {
@@ -6283,7 +6277,7 @@
     "/authz/roles/{id}/users": {
       "get": {
         "deprecated": true,
-        "summary": "Get users assigned to a role",
+        "summary": "Get users assigned to a role (deprecated)",
         "description": "Get all the users (`db` + `oidc`) who have been assigned a specific role. Deprecated, will be removed when v1.29 is not supported anymore.",
         "operationId": "getUsersForRoleDeprecated",
         "x-serviceIds": [
@@ -6485,7 +6479,7 @@
     "/authz/users/{id}/roles": {
       "get": {
         "deprecated": true,
-        "summary": "Get roles assigned to a user",
+        "summary": "Get roles assigned to a user (deprecated)",
         "description": "Retrieve the roles assigned to a specific user (`db` + `oidc`). Deprecated, will be removed when 1.29 is not supported anymore",
         "operationId": "getRolesForUserDeprecated",
         "x-serviceIds": [
@@ -6665,7 +6659,8 @@
                   "$ref": "#/definitions/UserTypeInput"
                 }
               }
-            }
+            },
+            "description": "Roles to assign to the user and the user type"
           }
         ],
         "responses": {
@@ -6739,7 +6734,8 @@
                   "$ref": "#/definitions/UserTypeInput"
                 }
               }
-            }
+            },
+            "description": "Roles to revoke from the user and the user type"
           }
         ],
         "responses": {
@@ -6813,7 +6809,8 @@
                   "$ref": "#/definitions/GroupType"
                 }
               }
-            }
+            },
+            "description": "Roles to assign to the group and the group type"
           }
         ],
         "responses": {
@@ -6884,7 +6881,8 @@
                   "$ref": "#/definitions/GroupType"
                 }
               }
-            }
+            },
+            "description": "Roles to revoke from the group and the group type"
           }
         ],
         "responses": {
@@ -7264,7 +7262,7 @@
             }
           }
         },
-        "summary": "Delete an object",
+        "summary": "Delete an object by ID",
         "tags": [
           "objects"
         ],
@@ -7329,7 +7327,7 @@
             }
           }
         },
-        "summary": "Get an object",
+        "summary": "Get an object by ID",
         "tags": [
           "objects"
         ],
@@ -7403,7 +7401,7 @@
             }
           }
         },
-        "summary": "Patch an object",
+        "summary": "Patch an object by ID",
         "tags": [
           "objects"
         ],
@@ -7530,7 +7528,7 @@
             }
           }
         },
-        "summary": "Check if an object exists",
+        "summary": "Check if an object exists by ID",
         "tags": [
           "objects"
         ],
@@ -7982,7 +7980,7 @@
             }
           }
         },
-        "summary": "Add an object reference",
+        "summary": "Add an object reference by object ID",
         "tags": [
           "objects"
         ],
@@ -8057,7 +8055,7 @@
             }
           }
         },
-        "summary": "Replace object references",
+        "summary": "Replace object references by object ID",
         "tags": [
           "objects"
         ],
@@ -8132,7 +8130,7 @@
             }
           }
         },
-        "summary": "Delete an object reference",
+        "summary": "Delete an object reference by object ID",
         "tags": [
           "objects"
         ],
@@ -8890,7 +8888,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/TokenizeRequest"
-            }
+            },
+            "description": "Text to tokenize and the tokenization method to apply"
           }
         ],
         "responses": {
@@ -9368,7 +9367,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/IndexUpsertRequest"
-            }
+            },
+            "description": "Index configuration to create or migrate on the property"
           }
         ],
         "responses": {
@@ -9736,7 +9736,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/PropertyTokenizeRequest"
-            }
+            },
+            "description": "Text to tokenize using the property's tokenization settings"
           }
         ],
         "responses": {
@@ -10399,7 +10400,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/Alias"
-            }
+            },
+            "description": "Alias name and the collection it should point to"
           }
         ],
         "responses": {
@@ -10511,7 +10513,8 @@
                   "type": "string"
                 }
               }
-            }
+            },
+            "description": "The collection that the alias should point to"
           }
         ],
         "responses": {
@@ -11495,7 +11498,8 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/ExportCreateRequest"
-            }
+            },
+            "description": "Export identifier and the collections and file format to export"
           }
         ],
         "responses": {
@@ -12502,6 +12506,8 @@
   "produces": [
     "application/json"
   ],
+  "host": "localhost:8080",
+  "basePath": "/v1",
   "schemes": [
     "https"
   ],
